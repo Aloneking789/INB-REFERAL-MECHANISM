@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Redirecting...</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 50px;
+      background: #f9f9f9;
+    }
+
+    h2 {
+      color: #222;
+    }
+
+    p {
+      color: #555;
+    }
+
+    .loader {
+      margin: 30px auto;
+      border: 6px solid #ddd;
+      border-top: 6px solid #000;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+
+</head>
+<body>
+
+  <h2>Redirecting to Play Store...</h2>
+  <p>Please wait while we take you to the app.</p>
+  <div class="loader"></div>
+
+  <script>
+    // Read referral code from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const ref = urlParams.get("ref");
+
+    // Your Play Store Link
+    let playStoreUrl =
+      "https://play.google.com/store/apps/details?id=com.aloneking6798.inbprovider";
+
+    // If referral code exists, attach it as install referrer
+    if (ref) {
+      playStoreUrl += "&referrer=" + encodeURIComponent("ref=" + ref);
+    }
+
+    // Redirect after 1 second
+    setTimeout(() => {
+      window.location.href = playStoreUrl;
+    }, 1000);
+  </script>
+
+</body>
+</html>

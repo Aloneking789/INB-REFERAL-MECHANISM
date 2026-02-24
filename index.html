@@ -3,64 +3,131 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Redirecting...</title>
+  <title>INeedBuddy Partner Redirect</title>
 
+  <!-- ================= STYLES ================= -->
   <style>
     body {
       font-family: Arial, sans-serif;
+      display: grid;
+      place-items: center;
+      min-height: 100vh;
+      margin: 0;
+      background: #f8fafc;
+      color: #1f2937;
       text-align: center;
-      padding: 50px;
-      background: #f9f9f9;
+      padding: 24px;
     }
 
-    h2 {
-      color: #222;
-    }
-
-    p {
-      color: #555;
+    .container {
+      max-width: 420px;
     }
 
     .loader {
-      margin: 30px auto;
-      border: 6px solid #ddd;
-      border-top: 6px solid #000;
+      margin: 20px auto 0;
+      width: 32px;
+      height: 32px;
+      border: 3px solid #e5e7eb;
+      border-top: 3px solid #111827;
       border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      animation: spin 1s linear infinite;
+      animation: spin 0.9s linear infinite;
+    }
+
+    .muted {
+      color: #6b7280;
+      font-size: 14px;
+      margin-top: 10px;
     }
 
     @keyframes spin {
-      100% { transform: rotate(360deg); }
+      to { transform: rotate(360deg); }
     }
   </style>
-
 </head>
+
 <body>
 
-  <h2>Redirecting to Play Store...</h2>
-  <p>Please wait while we take you to the app.</p>
-  <div class="loader"></div>
+  <!-- ================= UI ================= -->
+  <div class="container">
+    <h2>Opening INeedBuddy Partner...</h2>
+    <p>If the app is not installed, you will be redirected to Play Store.</p>
+    <div class="loader"></div>
+    <p class="muted" id="info"></p>
+  </div>
 
+  <!-- ================= SCRIPT ================= -->
   <script>
-    // Read referral code from URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const ref = urlParams.get("ref");
+    (function () {
 
-    // Your Play Store Link
-    let playStoreUrl =
-      "https://play.google.com/store/apps/details?id=com.aloneking6798.inbprovider";
+      /* --------------------------------------------------
+         1️⃣ CONFIGURATION
+      -------------------------------------------------- */
 
-    // If referral code exists, attach it as install referrer
-    if (ref) {
-      playStoreUrl += "&referrer=" + encodeURIComponent("ref=" + ref);
-    }
+      const PACKAGE_ID = "com.aloneking6798.inbprovider";
+      const APP_SCHEME = "inbprovider";   // must match app.json scheme
+      const FALLBACK_DELAY = 1500;        // milliseconds
 
-    // Redirect after 1 second
-    setTimeout(() => {
-      window.location.href = playStoreUrl;
-    }, 1000);
+
+      /* --------------------------------------------------
+         2️⃣ GET REFERRAL FROM URL
+      -------------------------------------------------- */
+
+      const params = new URLSearchParams(window.location.search);
+      const referralCode = (params.get("ref") || "").trim();
+
+
+      /* --------------------------------------------------
+         3️⃣ BUILD URLS
+      -------------------------------------------------- */
+
+      // Deep Link (for installed app)
+      const appDeepLink = referralCode
+        ? `${APP_SCHEME}://open?ref=${encodeURIComponent(referralCode)}`
+        : `${APP_SCHEME}://open`;
+
+      // Play Store URL (for not installed)
+      const playStoreBase =
+        `https://play.google.com/store/apps/details?id=${PACKAGE_ID}`;
+
+      const playStoreUrl = referralCode
+        ? `${playStoreBase}&referrer=${encodeURIComponent("ref=" + referralCode)}`
+        : playStoreBase;
+
+
+      /* --------------------------------------------------
+         4️⃣ UPDATE UI
+      -------------------------------------------------- */
+
+      const infoElement = document.getElementById("info");
+      if (referralCode) {
+        infoElement.textContent = "Referral detected: " + referralCode;
+      }
+
+
+      /* --------------------------------------------------
+         5️⃣ REDIRECTION LOGIC
+      -------------------------------------------------- */
+
+      let fallbackTimer;
+
+      function redirectToPlayStore() {
+        window.location.replace(playStoreUrl);
+      }
+
+      // If app opens successfully, browser tab becomes hidden
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden && fallbackTimer) {
+          clearTimeout(fallbackTimer);
+        }
+      });
+
+      // Try opening the app first
+      window.location.href = appDeepLink;
+
+      // If not installed → fallback to Play Store
+      fallbackTimer = setTimeout(redirectToPlayStore, FALLBACK_DELAY);
+
+    })();
   </script>
 
 </body>
